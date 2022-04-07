@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中山面试</title>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js">
+    </script>
+    <style>
+        .toothpick {
+            float: left;
+            display: block;
+            background: red;
+            width: 80px;
+            height: 30px;
+            margin-right: 10px;
+            position: relative;
+        }
+        .backgroundblue{background:blue;}
+        #content > div {
+            margin-top: 10px;
+            display: block;
+            float: none;
+            position: relative;
+            /*border: 1px blue solid;*/
+            height: 30px;
+        }
+        #recover{margin-top:30px;}
+        .selected{background:yellow;}
+        #currentrun{color:red;}
+        #whichone{color:blue;}
+        #tips{color:darkmagenta;}
+    </style>
+</head>
+
+<body>
+    <h2>
+        游戏说明：<br/>
+        一、先选择一个或几个方框，点击走棋按钮，这些选中的方框即消失。<br />
+        二、默认先走棋的是甲方<br />
+        <span id="currentrun">当前应该<i id="whichone">甲</i> 方走棋</span>
+    </h2>
+    <div id="content">
+        <div id="one"></div>
+        <div id="two"></div>
+        <div id="three"></div>
+    </div>
+    <div><h3 id="tips"></h3></div>
+    <button id="btnrun" style="width:80px;height:30px;">走棋</button>
+    <button id="recover" style="width:80px;height:30px;">复原</button>
+</body>
+
+</html>
+<script>
+    $(function () {
+        //复原函数
+        var fuyuan = function () {
+            //复原提示标签
+            $('#currentrun').html('当前应该<i id="whichone">甲</i> 方走棋');
+            //开启走棋按钮
+            $('#btnrun').removeAttr('disabled');
+            $('#tips').text('');
+            //设置三行相同的物体，但每行的标记不一样，分别使用one,two,three类名来标识
+            let toothpick = '<span class="toothpick" data-flag="one"></span>';
+            let onehtml = [];
+            for (var i = 0; i < 3; i++) {
+                onehtml.push(toothpick);
+            }
+            $('#one').html(onehtml.join(''));
+            toothpick = '<span class="toothpick" data-flag="two"></span>';
+            let twohtml = [];
+            for (var i = 0; i < 5; i++) {
+                twohtml.push(toothpick);
+            }
+            $('#two').html(twohtml.join(''));
+            toothpick = '<span class="toothpick" data-flag="three"></span>';
+            let threehtml = [];
+            for (var i = 0; i < 7; i++) {
+                threehtml.push(toothpick);
+            }
+            $('#three').html(threehtml.join(''));
+
+            var muline = '';
+            //添加鼠标移动上去的事件
+            $('.toothpick').on('mouseover', function () {
+                $(this).addClass('backgroundblue');
+            });
+            //添加鼠标释放时的事件
+            $('.toothpick').on('mouseout', function () {
+                $(this).removeClass('backgroundblue');
+            });
+            //当点击棋子的时候，把颜色改变，表示选中
+            $('.toothpick').unbind('click').on('click', function () {
+                //提示消失
+                $('#tips').text('');
+                let $this = $(this);
+                let dataflag = $this.attr('data-flag');
+                if (!muline) {
+                    muline = dataflag;
+                }
+                if (dataflag != muline) {
+                    //选中的不是同一行
+                    //alert('请选择同一行内的棋子');
+                    $('#tips').text('请选择同一行内的棋子');
+                } else {
+                    //选中的是同一行的时候
+                    $this.toggleClass('selected');
+                    //当取消选中时，判断这行还有没有被选中的，如果没有选中的了，就把muline变量清空，以方便用户选择其他行
+                    if ($this.parent().children('.selected').length==0) {
+                        muline = '';
+                    }
+                }
+
+            });
+
+            //记录点击的次数，默认奇数次点击的是甲方，偶数次点击的是乙方
+            var hitsnum = 1;
+            //当点击走棋的时候
+            $('#btnrun').unbind('click').on('click', function () {
+                //提示消失
+                $('#tips').text('');
+                if ($('.selected').length == 0) {
+                    //alert('请选棋子');
+                    $('#tips').text('请选棋子');
+                    return;
+                }
+                $('.selected').remove();
+                muline = '';
+                //谁走完都要把计数器增加1
+                hitsnum++;
+                //看点击的次数是不是偶数
+                if (hitsnum % 2 == 0) {
+                    //说明是乙方在走棋
+                    $('#whichone').text('乙');
+
+                } else {
+                    //说明甲方在走棋
+                    $('#whichone').text('甲');
+                }
+                //判断桌面上是不是只有一个棋子了
+                let spannum = $('span.toothpick');
+                if (spannum.length == 1) {
+                    $('#btnrun').attr("disabled", "disabled");
+                    let msg = $('#whichone').text() + '方输';
+                    $('#currentrun').html(msg);
+                    //alert(msg);
+                    $('#tips').text(msg);
+                    return;
+                } else if (spannum.length == 0) {
+                    $('#btnrun').attr("disabled", "disabled");
+                    let msg = $('#whichone').text() == '乙' ? '甲方输' : '乙方输';
+                    $('#currentrun').html(msg);
+                    //alert(msg);
+                    $('#tips').text(msg);
+                    return;
+                }
+
+            })
+        }
+        //页面初始化
+        fuyuan();
+        //点击复原按钮
+        $('#recover').unbind('click').on('click', function () {
+            fuyuan();
+        });
+    });
+</script>
